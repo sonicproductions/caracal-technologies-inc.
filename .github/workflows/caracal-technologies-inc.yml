@@ -1,0 +1,38 @@
+name: Caracal Technologies Inc.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository_name:
+        description: "GitHub repository name to create"
+        required: true
+        type: string
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create GitHub repository
+        env:
+          GH_TOKEN: ${{ secrets.CARACAL_GITHUB_TOKEN }}
+          REPOSITORY_NAME: ${{ inputs.repository_name }}
+
+        run: |
+          echo "Caracal Technologies Inc. is creating: $REPOSITORY_NAME"
+
+          curl --fail-with-body \
+            --request POST \
+            --url "https://api.github.com/user/repos" \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$(jq -n \
+              --arg name "$REPOSITORY_NAME" \
+              '{
+                name: $name,
+                private: false,
+                auto_init: true
+              }')"
+
+          echo "Repository created successfully."
